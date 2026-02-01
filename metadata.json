@@ -1,0 +1,8 @@
+{
+  "name": "Capsule Chat",
+  "description": "A next-generation AI-powered messaging platform featuring smart commands, video calling, and stories.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
