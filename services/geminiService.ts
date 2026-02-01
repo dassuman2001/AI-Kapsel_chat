@@ -1,30 +1,42 @@
 import { GoogleGenAI, Type, FunctionDeclaration } from "@google/genai";
 import { User, Chat } from "../types";
 
-// Initialize Gemini Client
-// Robustly check for API key in various environments (Node, Browser Polyfill, Vite, etc.)
+// Helper to get API key safely
 const getApiKey = () => {
   try {
-    // Check standard Node/Build process
     if (typeof process !== 'undefined' && process.env?.API_KEY) {
       return process.env.API_KEY;
     }
-  } catch (e) {
-    // Ignore ReferenceError if process is not defined
-  }
-  
-  try {
-    // Check window polyfill
+    // Fallback for window polyfill if typescript/process definitions conflict
     if (typeof window !== 'undefined' && (window as any).process?.env?.API_KEY) {
       return (window as any).process.env.API_KEY;
     }
-  } catch (e) {}
-
+  } catch (e) {
+    console.warn("Failed to read process.env");
+  }
   return '';
 };
 
-const apiKey = getApiKey();
-const ai = new GoogleGenAI({ apiKey });
+// Lazy initialization to prevent app crash on load if key is missing temporarily
+let aiClient: GoogleGenAI | null = null;
+
+const getAI = () => {
+  if (aiClient) return aiClient;
+  
+  const key = getApiKey();
+  if (!key) {
+    console.error("Gemini API Key is missing.");
+    return null;
+  }
+  
+  try {
+    aiClient = new GoogleGenAI({ apiKey: key });
+    return aiClient;
+  } catch (error) {
+    console.error("Failed to initialize Gemini Client:", error);
+    return null;
+  }
+};
 
 // --- Function Declarations for the AI ---
 
@@ -94,9 +106,9 @@ export const sendToCapsuleAI = async (
   prompt: string, 
   availableUsers: User[]
 ): Promise<AIResponse> => {
-  const currentKey = getApiKey();
-  if (!currentKey) {
-    return { text: "API Key is missing. Please configure the environment." };
+  const ai = getAI();
+  if (!ai) {
+    return { text: "Configuration Error: API Key is missing. Please check your environment settings." };
   }
 
   // Create a context string about available users to help the AI resolution

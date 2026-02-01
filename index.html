@@ -7,9 +7,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
-      // Polyfill process for browser environments to prevent crashes if not defined
+      // Polyfill process.env for the browser environment
+      // We inject the user-provided API key here to mimic a server-side environment variable
+      const apiKey = 'AIzaSyBmfkFZF7dlDA4UNIEd_Bo320IkzQ7YEqs';
+      
       if (typeof process === 'undefined') {
-        window.process = { env: { API_KEY: '' } };
+        window.process = { env: { API_KEY: apiKey } };
+      } else {
+        if (!process.env) process.env = {};
+        if (!process.env.API_KEY) process.env.API_KEY = apiKey;
       }
     </script>
     <style>
