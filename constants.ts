@@ -54,7 +54,7 @@ export const MOCK_CHATS: Chat[] = [
       type: MessageType.TEXT,
       content: 'Hey! Did you see the new designs?',
       timestamp: new Date(Date.now() - 120000),
-      read: false
+      status: 'delivered'
     }
   },
   {
@@ -71,7 +71,7 @@ export const MOCK_CHATS: Chat[] = [
       type: MessageType.TEXT,
       content: 'Meeting in 10 mins everyone.',
       timestamp: new Date(Date.now() - 300000),
-      read: true
+      status: 'read'
     }
   }
 ];
@@ -84,7 +84,7 @@ export const MOCK_MESSAGES: Message[] = [
     type: MessageType.TEXT,
     content: 'Hey! Did you see the new designs?',
     timestamp: new Date(Date.now() - 120000),
-    read: false
+    status: 'delivered'
   },
   {
     id: 'm3',
@@ -93,7 +93,7 @@ export const MOCK_MESSAGES: Message[] = [
     type: MessageType.TEXT,
     content: 'Not yet, sending them now?',
     timestamp: new Date(Date.now() - 180000),
-    read: true
+    status: 'read'
   }
 ];
 

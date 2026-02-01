@@ -7,15 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
-      // Polyfill process.env for the browser environment
-      // We inject the user-provided API key here to mimic a server-side environment variable
+      // Polyfill process.env for Gemini API
       const apiKey = 'AIzaSyBmfkFZF7dlDA4UNIEd_Bo320IkzQ7YEqs';
-      
+      const env = { API_KEY: apiKey };
+
       if (typeof process === 'undefined') {
-        window.process = { env: { API_KEY: apiKey } };
+        window.process = { env };
       } else {
-        if (!process.env) process.env = {};
-        if (!process.env.API_KEY) process.env.API_KEY = apiKey;
+        process.env = { ...process.env, ...env };
       }
     </script>
     <style>
@@ -49,7 +48,9 @@
     "react-dom/": "https://esm.sh/react-dom@18.2.0/",
     "@google/genai": "https://esm.sh/@google/genai",
     "lucide-react": "https://esm.sh/lucide-react@0.294.0",
-    "date-fns": "https://esm.sh/date-fns@2.30.0"
+    "date-fns": "https://esm.sh/date-fns@2.30.0",
+    "socket.io-client": "https://esm.sh/socket.io-client@4.7.4",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.93.3"
   }
 }
 </script>

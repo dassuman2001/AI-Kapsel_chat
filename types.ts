@@ -11,25 +11,27 @@ export interface User {
   avatar: string;
   status: UserStatus;
   lastSeen: Date;
-  about: string;
+  about?: string;
 }
 
 export enum MessageType {
   TEXT = 'text',
   IMAGE = 'image',
   VIDEO = 'video',
-  AUDIO = 'audio', // Voice note
+  AUDIO = 'audio',
   SYSTEM = 'system'
 }
+
+export type MessageStatus = 'sent' | 'delivered' | 'read';
 
 export interface Message {
   id: string;
   chatId: string;
   senderId: string;
   type: MessageType;
-  content: string; // Text content or URL for media
+  content: string;
   timestamp: Date;
-  read: boolean;
+  status: MessageStatus;
 }
 
 export interface Chat {
@@ -62,10 +64,9 @@ export interface Call {
 
 export type ViewState = 'CHATS' | 'STATUS' | 'CALLS' | 'SETTINGS' | 'AI_CHAT';
 
-// AI Command Types
 export interface AICommandResult {
   action: 'navigate' | 'message' | 'update_profile' | 'none';
-  targetId?: string; // Chat ID or User ID
+  targetId?: string;
   payload?: any;
   responseToUser?: string;
 }

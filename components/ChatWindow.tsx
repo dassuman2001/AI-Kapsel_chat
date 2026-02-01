@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Send, Phone, Video, Paperclip, Mic, MoreVertical, Smile, Image as ImageIcon } from 'lucide-react';
-import { MessageType } from '../types';
+import { Send, Phone, Video, Paperclip, Mic, MoreVertical, Check, CheckCheck } from 'lucide-react';
+import { MessageType, MessageStatus } from '../types';
 import { format } from 'date-fns';
 
 const ChatWindow: React.FC = () => {
@@ -16,10 +16,10 @@ const ChatWindow: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, activeChatId]);
 
-  if (!activeChat) {
+  if (!activeChat || !currentUser) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-slate-950 text-slate-500">
-        <div className="w-24 h-24 rounded-full bg-slate-900 flex items-center justify-center mb-4">
+        <div className="w-24 h-24 rounded-full bg-slate-900 flex items-center justify-center mb-4 border border-slate-800">
             <span className="text-4xl">💊</span>
         </div>
         <h2 className="text-2xl font-bold text-slate-300 mb-2">Welcome to Capsule</h2>
@@ -30,9 +30,9 @@ const ChatWindow: React.FC = () => {
 
   const chatMessages = messages.filter(m => m.chatId === activeChat.id);
   const partnerId = activeChat.participants.find(id => id !== currentUser.id);
-  const partner = users.find(u => u.id === partnerId) || currentUser;
-  const displayName = activeChat.isGroup ? activeChat.groupName : partner.name;
-  const displayAvatar = activeChat.isGroup ? activeChat.groupAvatar : partner.avatar;
+  const partner = users.find(u => u.id === partnerId); 
+  const displayName = activeChat.isGroup ? activeChat.groupName : (partner?.name || 'Unknown');
+  const displayAvatar = activeChat.isGroup ? activeChat.groupAvatar : (partner?.avatar || 'https://via.placeholder.com/150');
 
   const handleSend = () => {
     if (inputValue.trim()) {
@@ -48,15 +48,10 @@ const ChatWindow: React.FC = () => {
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files && e.target.files[0]) {
-          // In a real app, upload to storage and get URL.
-          // Here we just use a fake URL or create object URL
-          const file = e.target.files[0];
-          const objectUrl = URL.createObjectURL(file);
-          const type = file.type.startsWith('video') ? MessageType.VIDEO : MessageType.IMAGE;
-          sendMessage(activeChat.id, objectUrl, type);
-      }
+  const StatusIcon = ({ status }: { status: MessageStatus }) => {
+      if (status === 'read') return <CheckCheck size={14} className="text-cyan-400" />;
+      if (status === 'delivered') return <CheckCheck size={14} className="text-slate-500" />;
+      return <Check size={14} className="text-slate-500" />;
   };
 
   return (
@@ -68,7 +63,7 @@ const ChatWindow: React.FC = () => {
           <div>
             <h2 className="font-semibold text-slate-100">{displayName}</h2>
             <p className="text-xs text-slate-400">
-               {activeChat.isGroup ? 'Group' : (partner.status === 'online' ? 'Online' : `Last seen ${format(partner.lastSeen, 'HH:mm')}`)}
+               {activeChat.isGroup ? 'Group' : (partner?.status === 'online' ? 'Online' : partner?.lastSeen ? `Last seen ${format(partner.lastSeen, 'HH:mm')}` : '')}
             </p>
           </div>
         </div>
@@ -91,32 +86,22 @@ const ChatWindow: React.FC = () => {
           const isMe = msg.senderId === currentUser.id;
           return (
             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+              <div className={`max-w-[70%] rounded-2xl px-4 py-2 relative group ${
                 isMe 
                   ? 'bg-indigo-600 text-white rounded-tr-sm' 
                   : 'bg-slate-800 text-slate-200 rounded-tl-sm'
               }`}>
                 {msg.type === MessageType.TEXT && (
-                   <p className="whitespace-pre-wrap">{msg.content}</p>
+                   <p className="whitespace-pre-wrap pr-4">{msg.content}</p>
                 )}
-                {msg.type === MessageType.IMAGE && (
-                    <img src={msg.content} alt="Attachment" className="rounded-lg max-h-60 mt-1 mb-1" />
-                )}
-                {msg.type === MessageType.VIDEO && (
-                    <video src={msg.content} controls className="rounded-lg max-h-60 mt-1 mb-1" />
-                )}
-                {msg.type === MessageType.AUDIO && (
-                    <div className="flex items-center gap-2 min-w-[150px]">
-                        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                            <span className="text-xs">▶</span>
-                        </div>
-                        <div className="h-1 flex-1 bg-white/30 rounded-full"></div>
-                        <span className="text-xs opacity-70">0:15</span>
-                    </div>
+                {/* Media rendering (simplified) */}
+                {(msg.type === MessageType.IMAGE || msg.type === MessageType.VIDEO) && (
+                    <div className="mb-1 italic text-sm opacity-70">[Media: {msg.content}]</div>
                 )}
                 
-                <div className={`text-[10px] mt-1 text-right ${isMe ? 'text-indigo-200' : 'text-slate-500'}`}>
-                  {format(msg.timestamp, 'HH:mm')}
+                <div className={`flex items-center justify-end gap-1 mt-1 ${isMe ? 'text-indigo-200' : 'text-slate-500'}`}>
+                  <span className="text-[10px]">{format(msg.timestamp, 'HH:mm')}</span>
+                  {isMe && <StatusIcon status={msg.status} />}
                 </div>
               </div>
             </div>
@@ -129,18 +114,10 @@ const ChatWindow: React.FC = () => {
       <div className="p-3 bg-slate-900 border-t border-slate-800">
         <div className="flex items-center gap-2 bg-slate-800 p-1.5 rounded-3xl border border-slate-700">
           <button 
-             onClick={() => fileInputRef.current?.click()}
              className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-slate-700 rounded-full transition-colors"
           >
             <Paperclip size={20} />
           </button>
-          <input 
-             type="file" 
-             ref={fileInputRef} 
-             className="hidden" 
-             accept="image/*,video/*"
-             onChange={handleFileSelect}
-          />
           
           <input
             type="text"
