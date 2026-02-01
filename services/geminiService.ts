@@ -2,11 +2,24 @@ import { GoogleGenAI, Type, FunctionDeclaration } from "@google/genai";
 import { User, Chat } from "../types";
 
 // Initialize Gemini Client
-// Ensure process.env is accessed safely to avoid ReferenceError in some environments
+// Robustly check for API key in various environments (Node, Browser Polyfill, Vite, etc.)
 const getApiKey = () => {
-  if (typeof process !== 'undefined' && process.env) {
-    return process.env.API_KEY || '';
+  try {
+    // Check standard Node/Build process
+    if (typeof process !== 'undefined' && process.env?.API_KEY) {
+      return process.env.API_KEY;
+    }
+  } catch (e) {
+    // Ignore ReferenceError if process is not defined
   }
+  
+  try {
+    // Check window polyfill
+    if (typeof window !== 'undefined' && (window as any).process?.env?.API_KEY) {
+      return (window as any).process.env.API_KEY;
+    }
+  } catch (e) {}
+
   return '';
 };
 
