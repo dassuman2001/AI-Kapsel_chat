@@ -31,7 +31,8 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const SOCKET_URL = 'http://localhost:5000';
+// Use window.location.origin for socket connection in production
+const SOCKET_URL = window.location.origin;
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);

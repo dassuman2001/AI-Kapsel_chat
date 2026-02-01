@@ -1,7 +1,7 @@
 // API Helper for Flask Backend
-// Ensure your python backend is running on http://localhost:5000
+// We use relative path for production, assuming served from same origin.
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = '/api';
 
 export const api = {
     async register(name: string, mobileNumber: string, password: string) {
